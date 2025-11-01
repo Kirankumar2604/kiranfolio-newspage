@@ -4,7 +4,7 @@ node_modules/
 # Env files (do NOT commit secrets). Re-include .env.example if you have one.
 .env
 .env.*
-!.env.example
+.env.example
 
 # Client Vite env files
 /client/.env*

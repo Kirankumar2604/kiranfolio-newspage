@@ -2,6 +2,8 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import fs from "fs";
+import path from "path";
 
 // Prevent accidental usage of VITE_ prefixed keys (they are client-visible).
 // If a developer has set VITE_GEMINI_API_KEY in their environment, it's
@@ -77,12 +79,22 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  // Decide whether to use Vite dev middleware or serve the built assets.
+  // Express defaults to "development" when NODE_ENV is not set which can
+  // cause hosted environments to inadvertently run Vite middleware and
+  // serve ESM sources. Prefer serving the production build when the
+  // `dist/public` folder exists (i.e. client was built) or when
+  // NODE_ENV === 'production'. Only enable Vite middleware in explicit
+  // development scenarios where the dist folder is not present.
+  const distPath = path.resolve(import.meta.dirname, "public");
+  const hasDist = fs.existsSync(distPath);
+  const isProdEnv = process.env.NODE_ENV === 'production';
+
+  if (!hasDist && app.get("env") === "development" && !isProdEnv) {
+    // Development with no built assets: use Vite middleware
     await setupVite(app, server);
   } else {
+    // Prefer serving static built assets in all other cases
     serveStatic(app);
   }
 
