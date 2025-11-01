@@ -13,17 +13,15 @@ How to fully remove @esbuild-kit packages (recommended)
 
 1. Update direct dependencies that pull the deprecated packages. Run locally:
 
-   # prefer pnpm if you use it, otherwise npm
-   pnpm up --latest
-   # or
+   # prefer npm
    npm update
 
    This updates transitive deps and may remove @esbuild-kit from the lockfile.
 
-2. If you use pnpm and CI enforces frozen lockfiles, update the lockfile and commit it:
+2. If your CI enforces frozen lockfiles, update the lockfile and commit it:
 
-   pnpm install --no-frozen-lockfile
-   git add pnpm-lock.yaml package.json
+   npm install
+   git add package-lock.json package.json
    git commit -m "chore: update lockfile to remove deprecated esbuild-kit deps"
 
 3. If some package still depends on @esbuild-kit, identify it with:
@@ -37,5 +35,5 @@ How to fully remove @esbuild-kit packages (recommended)
 
 Notes
 
-- I did not modify lockfiles here to avoid causing CI/frozen-lockfile issues. If you want, I can update lockfiles and commit them for you (tell me to run `pnpm install --no-frozen-lockfile` and commit the updated lockfile).
+   - I did not modify lockfiles here to avoid causing CI/frozen-lockfile issues. If you want, I can update lockfiles and commit them for you (tell me to run `npm install` and commit the updated lockfile).
 - The new `tsx`-based scripts allow you to run TypeScript/Esm server code without relying on esbuild-loader machinery.

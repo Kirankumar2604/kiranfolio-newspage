@@ -38,7 +38,7 @@ Follow these steps to configure the AI provider locally and in production.
 
 6) Deploying
 
-- Build the client (`cd client && pnpm build`) before serving `dist/public` from the server.
+- Build the client (`cd client && npm run build`) before serving `dist/public` from the server.
 - For Vercel or similar platforms, ensure your build step produces files in `dist/public` and that your server has access to the `GEMINI_API_KEY` env var.
 
 If you want, I can add an example `README_DEPLOY.md` showing exact Vercel settings for this repository layout.

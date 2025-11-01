@@ -7,7 +7,7 @@
 - [x] Update Footer component to display "Kiranfolio"
 - [x] Update replit.md documentation
 - [x] Update server/storage.ts comment
-- [x] Install "water" dependency using pnpm in client directory
+ - [x] Install "water" dependency using npm in client directory
 - [x] Modify server to run both client and server concurrently
 - [x] Test the setup by running the application
 
