@@ -61,6 +61,16 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     reportCompressedSize: true,
   },
+  // Ensure PostCSS gets a default `from` option to avoid the common
+  // warning: "A PostCSS plugin did not pass the `from` option to postcss.parse".
+  // Setting `from: undefined` prevents PostCSS from warning when plugins
+  // call parse without a source. This helps builds on Vercel where some
+  // plugin versions may still call postcss.parse without passing `from`.
+  css: {
+    postcss: {
+      from: undefined as unknown as string | undefined,
+    },
+  },
   server: {
     port: 8000,
     fs: {
