@@ -180,6 +180,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: guidance });
       }
 
+      // Helpful developer ergonomics: detect if someone mistakenly provided an
+      // OpenAI-style key (it starts with `sk_`) while our code calls Google's
+      // Generative Language API. Return a clear 400 so the developer knows what
+      // to fix instead of an opaque provider error.
+      if (GEMINI_API_KEY && /^sk_/.test(GEMINI_API_KEY)) {
+        return res.status(400).json({
+          error: 'Detected an OpenAI-style key (starts with sk_). This project is configured to use Google Generative Language (Gemini).\n' +
+                 'Use a Google API key (set GEMINI_API_KEY) or set GEMINI_API_URL to an appropriate endpoint.'
+        });
+      }
+
       // Add context to narrow responses to tech news
       const contextualPrompt = `You are a tech news assistant. Only answer questions related to technology, news, tech companies, innovations, or current events. ` +
         `If the question is not related to news or technology, politely respond: "I'm a tech news assistant. I can only help with technology and news-related questions. Please ask something about tech news, companies, or innovations."\n\nUser question: ${question}`;
@@ -252,6 +263,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           clientResponse.debug = { providerStatus, providerData };
         }
+
+          
       } catch (_e) {
         // swallow any debug construction errors
       }
@@ -259,6 +272,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json(clientResponse);
     }
   });
+
+      // Development-only: validate AI provider configuration.
+      // - Returns 404 in production
+      // - In development, attempts a lightweight provider call to ensure keys/URL are valid
+      app.get('/api/ai/validate', async (_req, res) => {
+        if (process.env.NODE_ENV === 'production') {
+          return res.status(404).json({ error: 'Not available in production' });
+        }
+
+        let GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+        const GEMINI_API_URL = process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta2/models/gpt-4o-mini-tts:generateText';
+
+        if (!GEMINI_API_KEY && !process.env.GEMINI_API_URL) {
+          return res.status(400).json({ ok: false, error: 'Missing GEMINI_API_KEY (or GEMINI_API_URL). Set the server env and try again.' });
+        }
+
+        if (GEMINI_API_KEY && /^sk_/.test(GEMINI_API_KEY)) {
+          return res.status(400).json({ ok: false, error: 'Detected an OpenAI-style key (sk_). Use a Google API key for GEMINI_API_KEY or set GEMINI_API_URL accordingly.' });
+        }
+
+        try {
+          const response = await axios.post(process.env.GEMINI_API_URL || GEMINI_API_URL, {
+            // very small payload to verify auth — provider may still bill for requests
+            prompt: {
+              text: 'Ping'
+            },
+            // keep response tiny
+            max_output_tokens: 5
+          }, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${GEMINI_API_KEY}`
+            },
+            timeout: 5000
+          });
+
+          return res.status(200).json({ ok: true, status: response.status, dataPreview: (response.data && response.data.candidates) ? response.data.candidates[0] : '<no-candidates>' });
+        } catch (err: any) {
+          console.error('AI validate error:', {
+            message: err?.message,
+            status: err?.response?.status,
+            data: err?.response?.data,
+          });
+
+          return res.status(502).json({ ok: false, error: 'Provider validation failed', details: process.env.DEBUG_AI === '1' ? { message: err?.message, status: err?.response?.status, data: err?.response?.data } : undefined });
+        }
+      });
 
   const httpServer = createServer(app);
   return httpServer;
