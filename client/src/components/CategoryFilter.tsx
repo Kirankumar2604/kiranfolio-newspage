@@ -1,5 +1,4 @@
 import { categoryConfig, type TechCategory } from "@shared/schema";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface CategoryFilterProps {
@@ -28,15 +27,20 @@ export function CategoryFilter({ activeCategory, onCategoryChange }: CategoryFil
             {categories.map((category) => {
               const isActive = activeCategory === category;
               return (
-                <Badge
+                <button
                   key={category}
-                  variant={isActive ? "default" : "secondary"}
-                  className="cursor-pointer px-6 py-2 text-sm font-medium rounded-full transition-all duration-200 no-default-active-elevate"
+                  type="button"
+                  className={`inline-flex items-center rounded-full border px-6 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 no-default-active-elevate ${
+                    isActive
+                      ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                      : "border-transparent bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
                   onClick={() => onCategoryChange(category)}
+                  aria-pressed={isActive}
                   data-testid={`button-category-${category}`}
                 >
                   {categoryConfig[category].label}
-                </Badge>
+                </button>
               );
             })}
           </div>

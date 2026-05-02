@@ -1,6 +1,6 @@
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FullScreenSearch } from "@/components/FullScreenSearch";
 
 interface HeaderProps {
@@ -11,6 +11,10 @@ interface HeaderProps {
 export function Header({ onSearch, searchQuery = "" }: HeaderProps) {
   const [isFullScreenSearchOpen, setIsFullScreenSearchOpen] = useState(false);
   const [localQuery, setLocalQuery] = useState(searchQuery);
+
+  useEffect(() => {
+    setLocalQuery(searchQuery);
+  }, [searchQuery]);
 
   const handleFullScreenSearch = (query: string) => {
     setLocalQuery(query);
