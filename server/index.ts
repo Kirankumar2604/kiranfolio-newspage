@@ -4,6 +4,9 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Prevent accidental usage of VITE_ prefixed keys (they are client-visible).
 // If a developer has set VITE_GEMINI_API_KEY in their environment, it's
@@ -86,7 +89,7 @@ app.use((req, res, next) => {
   // `dist/public` folder exists (i.e. client was built) or when
   // NODE_ENV === 'production'. Only enable Vite middleware in explicit
   // development scenarios where the dist folder is not present.
-  const distPath = path.resolve(import.meta.dirname, "public");
+  const distPath = path.resolve(__dirname, "public");
   const hasDist = fs.existsSync(distPath);
   const isProdEnv = process.env.NODE_ENV === 'production';
 
